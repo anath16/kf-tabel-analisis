@@ -17,7 +17,8 @@ SELECT transaction_id,
   rating_cabang,
   customer_name,
   kf_final_transaction.product_id,
-  product_name,
+  product_name, #apabila ingin digabungkan dengan tabel kf_inventory, baris ini diubah jadi "kf_product.product_name" agar tidak ambigu...
+  #...dan menambah "opname_stock," di bagian ini 
   actual_price,
   discount_percentage,
   CASE #menentukan isi kolom persentase_gross_laba dengan 5 pembagian kasus
@@ -41,3 +42,9 @@ FROM kimia_farma.kf_final_transaction
     ON kf_final_transaction.branch_id = kf_kantor_cabang.branch_id #menyesuaikan kolom branch_id pada kedua tabel
   LEFT JOIN kimia_farma.kf_product #menggabungkan tabel kf_final_transaction dengan kf_product dari kiri
     ON kf_final_transaction.product_id = kf_product.product_id; #menyesuaikan kolom product_id pada kedua tabel
+
+#apabila ingin digabungkan dengan tabel kf_inventory, dapat ditambahkan baris berikut
+#  LEFT JOIN kimia_farma.kf_inventory #menggabungkan tabel kf_final_transaction dengan kf_inventory dari kiri
+#    ON kf_final_transaction.branch_id = kf_inventory.branch_id AND kf_final_transaction.product_id = kf_inventory.product_id; #menyesuaikan kolom branch_id dan product_id pada kedua tabel
+#namun, penggabungannya kurang baik karena apabila memanfaatkan branch_id dan product_id terdapat 8 row yang sesuai,...
+#...jadi diperlukan identitas unik yakni inventory_id, namun inventory_id tidak terdapat pada tabel lain selain kf_inventory
