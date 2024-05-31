@@ -1,0 +1,43 @@
+ALTER TABLE kimia_farma.kf_final_transaction
+RENAME COLUMN price to actual_price; #mengubah nama kolom price pada tabel kf_final_transaction menjadi "actual_price"
+
+ALTER TABLE kimia_farma.kf_final_transaction
+RENAME COLUMN rating to rating_transaksi; #mengubah nama kolom "rating" pada tabel kf_final_transaction menjadi "rating_transaksi"
+
+ALTER TABLE kimia_farma.kf_kantor_cabang
+RENAME COLUMN rating to rating_cabang; #mengubah nama kolom "rating" pada tabel kf_kantor_cabang menjadi "rating_cabang"
+
+CREATE TABLE kimia_farma.kf_tabel_analisis AS #membuat tabel baru bernama kf_tabel_analisis dengan kolom-kolom berikut
+SELECT transaction_id,
+  date,
+  kf_final_transaction.branch_id,
+  branch_name,
+  kota,
+  provinsi,
+  rating_cabang,
+  customer_name,
+  kf_final_transaction.product_id,
+  product_name,
+  actual_price,
+  discount_percentage,
+  CASE #menentukan isi kolom persentase_gross_laba dengan 5 pembagian kasus
+    WHEN actual_price <= 50000 THEN 0.10
+    WHEN 50000 < actual_price AND actual_price <= 100000 THEN 0.15
+    WHEN 100000 < actual_price AND actual_price <= 300000 THEN 0.20
+    WHEN 300000 < actual_price AND actual_price <= 500000 THEN 0.25
+    WHEN actual_price > 500000 THEN 0.30
+  END AS persentase_gross_laba,
+  ROUND(actual_price*(1-discount_percentage), 2) AS nett_sales, #round untuk pembulatan menjadi 2 angka di belakang koma
+  CASE
+    WHEN actual_price <= 50000 THEN ROUND(0.10*actual_price*(1-discount_percentage), 2)
+    WHEN 50000 < actual_price AND actual_price <= 100000 THEN ROUND(0.15*actual_price*(1-discount_percentage), 2)
+    WHEN 100000 < actual_price AND actual_price <= 300000 THEN ROUND(0.20*actual_price*(1-discount_percentage), 2)
+    WHEN 300000 < actual_price AND actual_price <= 500000 THEN ROUND(0.25*actual_price*(1-discount_percentage), 2)
+    WHEN actual_price > 500000 THEN ROUND(0.30*actual_price*(1-discount_percentage), 2)
+  END AS nett_profit,
+  rating_transaksi
+FROM kimia_farma.kf_final_transaction
+  LEFT JOIN kimia_farma.kf_kantor_cabang #menggabungkan tabel kf_final_transaction dengan kf_kantor_cabang dari kiri
+    ON kf_final_transaction.branch_id = kf_kantor_cabang.branch_id #menyesuaikan kolom branch_id pada kedua tabel
+  LEFT JOIN kimia_farma.kf_product #menggabungkan tabel kf_final_transaction dengan kf_product dari kiri
+    ON kf_final_transaction.product_id = kf_product.product_id; #menyesuaikan kolom product_id pada kedua tabel
